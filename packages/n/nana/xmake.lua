@@ -14,6 +14,8 @@ package("nana")
     end
 
     add_configs("nana_filesystem_force", {description = "Force nana filesystem over ISO and boost?", default = is_plat("linux"), type = "boolean"})
+    add_configs("enable_jpeg", {description = "Use libjpeg?", default = false, type = "boolean"})
+    add_configs("enable_png", {description = "Use libpng?", default = false, type = "boolean"})
 
     if is_plat("linux", "windows") then
         add_deps("cmake >=3.15")
@@ -31,6 +33,12 @@ package("nana")
         if package:config("nana_filesystem_force") then
             package:add("defines", "NANA_FILESYSTEM_FORCE")
         end
+        if(package:config("enable_jpeg")) then
+            package:add("deps", "libjpeg")
+        end
+        if(package:config("enable_png")) then
+            package:add("deps", "libpng")
+        end
     end)
 
     on_install("linux", "windows", function (package)
@@ -40,7 +48,15 @@ package("nana")
             io.gsub(file_name, " and ", " && ")
         end
 
-        local configs = {"-DNANA_CMAKE_ENABLE_JPEG=OFF", "-DNANA_CMAKE_ENABLE_PNG=OFF", "-DBUILD_SHARED_LIBS=OFF"}
+        local configs = {"-DBUILD_SHARED_LIBS=OFF"}
+
+        if(package:config("enable_jpeg")) then
+            table.insert(configs, "-DNANA_CMAKE_ENABLE_JPEG=ON")
+        end
+        if(package:config("enable_png")) then
+            table.insert(configs, "-DNANA_CMAKE_ENABLE_PNG=ON")
+        end
+        
         if package:config("nana_filesystem_force") then
             table.insert(configs, "-DNANA_CMAKE_NANA_FILESYSTEM_FORCE=ON")
         end
